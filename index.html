@@ -8,7 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
 (function(){
+try{
 emailjs.init("TU_PUBLIC_KEY");
+}catch(e){}
 })();
 </script>
 
@@ -21,7 +23,6 @@ body{
     background:#0f172a;
     color:white;
 }
-
 header{
     display:flex;
     justify-content:space-between;
@@ -29,7 +30,6 @@ header{
     padding:20px;
     background:#1e293b;
 }
-
 .boton3d{
     background:#9333ea;
     padding:10px 20px;
@@ -38,7 +38,6 @@ header{
     color:white;
     cursor:pointer;
 }
-
 .productos{
     display:flex;
     flex-wrap:wrap;
@@ -46,7 +45,6 @@ header{
     gap:20px;
     padding:20px;
 }
-
 .card{
     width:200px;
     background:#1e293b;
@@ -54,18 +52,15 @@ header{
     border-radius:10px;
     text-align:center;
 }
-
 .precio{
     color:#22c55e;
 }
-
 .carrito{
     margin:20px;
     padding:20px;
     background:#020617;
     border-radius:10px;
 }
-
 .resumen{
     background:#020617;
     padding:20px;
@@ -73,7 +68,6 @@ header{
     border-radius:10px;
     text-align:center;
 }
-
 .pagar{
     margin-top:15px;
     width:100%;
@@ -81,10 +75,8 @@ header{
     color:black;
     font-weight:bold;
     padding:12px;
+    cursor:pointer;
 }
-
-/* MODAL 3D */
-
 .modal{
     position:fixed;
     top:0;
@@ -97,7 +89,6 @@ header{
     align-items:center;
     z-index:999;
 }
-
 .modal-content{
     width:80%;
     height:80%;
@@ -105,9 +96,7 @@ header{
     border-radius:10px;
     padding:20px;
     position:relative;
-    z-index:1;
 }
-
 .cerrar{
     position:absolute;
     top:10px;
@@ -143,16 +132,12 @@ header{
 </div>
 </section>
 
-<!-- MODAL 3D -->
 <div class="modal" id="visor3d" onclick="cerrar3D()">
-
 <div class="modal-content" onclick="event.stopPropagation()">
-
 <span class="cerrar" onclick="cerrar3D()">X</span>
 
 <model-viewer
 src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-alt="Prenda 3D"
 auto-rotate
 camera-controls
 style="width:100%; height:100%;">
@@ -209,6 +194,7 @@ document.getElementById("totalFinal").textContent = total.toFixed(2);
 }
 
 function finalizarCompra(){
+
 if(carrito.length === 0){
 alert("Tu carrito está vacío");
 return;
@@ -218,21 +204,28 @@ let listaProductos = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
 let subtotal = carrito.reduce((acc,p)=> acc+p.precio,0);
 let total = subtotal + (subtotal*0.16);
 
+try{
 emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
 productos: listaProductos,
 total: total.toFixed(2)
 })
 .then(()=>{
 alert("Compra realizada ✅ Revisa tu correo");
+})
+.catch(()=>{
+alert("Compra realizada (modo demo) ✅");
+});
+}catch{
+alert("Compra realizada (modo demo) ✅");
+}
+
 carrito = [];
 actualizarCarrito();
-});
 }
 
 function abrir3D(){
 document.getElementById("visor3d").style.display="flex";
 }
-
 function cerrar3D(){
 document.getElementById("visor3d").style.display="none";
 }
@@ -243,5 +236,6 @@ renderizar();
 
 </body>
 </html>
+
 
 
