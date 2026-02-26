@@ -13,18 +13,15 @@ emailjs.init("TU_PUBLIC_KEY");
 })();
 </script>
 
+<!-- LIBRERIA 3D -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
 <style>
 body{
     font-family: Arial, sans-serif;
     margin:0;
     background:#0f172a;
     color:white;
-    transition:0.4s;
-}
-
-.light{
-    background:#f1f5f9;
-    color:#0f172a;
 }
 
 header{
@@ -35,24 +32,13 @@ header{
     background:#1e293b;
 }
 
-.controls{
-    display:flex;
-    gap:10px;
-}
-
-input, select{
-    padding:8px;
-    border-radius:5px;
+.boton3d{
+    background:#9333ea;
+    padding:10px 20px;
     border:none;
-}
-
-button{
-    padding:8px 12px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    background:#3b82f6;
+    border-radius:8px;
     color:white;
+    cursor:pointer;
 }
 
 .productos{
@@ -69,20 +55,10 @@ button{
     padding:15px;
     border-radius:10px;
     text-align:center;
-    transition:0.3s;
-}
-
-.light .card{
-    background:white;
-}
-
-.card:hover{
-    transform:scale(1.05);
 }
 
 .precio{
     color:#22c55e;
-    font-weight:bold;
 }
 
 .carrito{
@@ -90,10 +66,6 @@ button{
     padding:20px;
     background:#020617;
     border-radius:10px;
-}
-
-.light .carrito{
-    background:#e2e8f0;
 }
 
 .resumen{
@@ -104,10 +76,6 @@ button{
     text-align:center;
 }
 
-.light .resumen{
-    background:#e2e8f0;
-}
-
 .pagar{
     margin-top:15px;
     width:100%;
@@ -115,7 +83,36 @@ button{
     color:black;
     font-weight:bold;
     padding:12px;
-    font-size:16px;
+}
+
+/* MODAL 3D */
+.modal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    width:80%;
+    height:80%;
+    background:#111;
+    border-radius:10px;
+    padding:20px;
+    position:relative;
+}
+
+.cerrar{
+    position:absolute;
+    top:10px;
+    right:20px;
+    cursor:pointer;
+    font-size:20px;
 }
 </style>
 </head>
@@ -123,143 +120,120 @@ button{
 <body>
 
 <header>
-    <h1>UrbanWear 🛍️</h1>
-    <div class="controls">
-        <input type="text" id="buscador" placeholder="Buscar ropa...">
-        <select id="filtro">
-            <option value="todos">Todas</option>
-            <option value="sudaderas">Sudaderas</option>
-            <option value="pantalones">Pantalones</option>
-            <option value="playeras">Playeras</option>
-            <option value="accesorios">Accesorios</option>
-        </select>
-        <button onclick="toggleModo()">Modo 🌗</button>
-    </div>
+<h1>UrbanWear 🛍️</h1>
+<button class="boton3d" onclick="abrir3D()">👕 Ver prenda 3D</button>
 </header>
 
 <section class="productos" id="productos"></section>
 
 <section class="carrito">
-    <h2>Tu Carrito 🛒</h2>
-    <ul id="listaCarrito"></ul>
+<h2>Tu Carrito 🛒</h2>
+<ul id="listaCarrito"></ul>
 
-    <div class="resumen">
-        <p>Subtotal: $<span id="subtotal">0</span></p>
-        <p>IVA (16%): $<span id="iva">0</span></p>
-        <h3>Total: $<span id="totalFinal">0</span></h3>
-
-        <button class="pagar" onclick="finalizarCompra()">PAGAR COMPRA</button>
-    </div>
+<div class="resumen">
+<p>Subtotal: $<span id="subtotal">0</span></p>
+<p>IVA (16%): $<span id="iva">0</span></p>
+<h3>Total: $<span id="totalFinal">0</span></h3>
+<button class="pagar" onclick="finalizarCompra()">PAGAR COMPRA</button>
+</div>
 </section>
+
+<!-- MODAL 3D -->
+<div class="modal" id="visor3d">
+<div class="modal-content">
+<span class="cerrar" onclick="cerrar3D()">X</span>
+
+<model-viewer
+src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+alt="Prenda 3D"
+auto-rotate
+camera-controls
+style="width:100%; height:100%;">
+</model-viewer>
+
+</div>
+</div>
 
 <script>
 
 const productos = [
-{nombre:"Sudadera Oversize", precio:50, categoria:"sudaderas"},
-{nombre:"Sudadera Street", precio:65, categoria:"sudaderas"},
-{nombre:"Jeans Skinny", precio:70, categoria:"pantalones"},
-{nombre:"Cargo Pants", precio:80, categoria:"pantalones"},
-{nombre:"Playera Básica", precio:30, categoria:"playeras"},
-{nombre:"Playera Vintage", precio:45, categoria:"playeras"},
-{nombre:"Gorra Snapback", precio:25, categoria:"accesorios"},
-{nombre:"Mochila Urbana", precio:55, categoria:"accesorios"}
+{nombre:"Sudadera Oversize", precio:50},
+{nombre:"Jeans Skinny", precio:70},
+{nombre:"Playera Vintage", precio:45},
+{nombre:"Gorra Snapback", precio:25}
 ];
 
 let carrito = [];
 
-function renderizar(lista){
-    const cont = document.getElementById("productos");
-    cont.innerHTML = "";
-
-    lista.forEach((prod,index)=>{
-        cont.innerHTML += `
-        <div class="card">
-            <h3>${prod.nombre}</h3>
-            <p class="precio">$${prod.precio}</p>
-            <button onclick="agregar(${index})">Agregar</button>
-        </div>`;
-    });
+function renderizar(){
+const cont = document.getElementById("productos");
+cont.innerHTML = "";
+productos.forEach((p,i)=>{
+cont.innerHTML += `
+<div class="card">
+<h3>${p.nombre}</h3>
+<p class="precio">$${p.precio}</p>
+<button onclick="agregar(${i})">Agregar</button>
+</div>`;
+});
 }
 
-function agregar(index){
-    carrito.push(productos[index]);
-    actualizarCarrito();
+function agregar(i){
+carrito.push(productos[i]);
+actualizarCarrito();
 }
 
 function actualizarCarrito(){
-    const lista = document.getElementById("listaCarrito");
-    const subtotalSpan = document.getElementById("subtotal");
-    const ivaSpan = document.getElementById("iva");
-    const totalFinalSpan = document.getElementById("totalFinal");
+const lista = document.getElementById("listaCarrito");
+lista.innerHTML = "";
+let subtotal = 0;
 
-    lista.innerHTML = "";
+carrito.forEach(item=>{
+lista.innerHTML += `<li>${item.nombre} - $${item.precio}</li>`;
+subtotal += item.precio;
+});
 
-    let subtotal = 0;
+let iva = subtotal * 0.16;
+let total = subtotal + iva;
 
-    carrito.forEach(item=>{
-        lista.innerHTML += `<li>${item.nombre} - $${item.precio}</li>`;
-        subtotal += item.precio;
-    });
-
-    let iva = subtotal * 0.16;
-    let total = subtotal + iva;
-
-    subtotalSpan.textContent = subtotal.toFixed(2);
-    ivaSpan.textContent = iva.toFixed(2);
-    totalFinalSpan.textContent = total.toFixed(2);
-}
-
-document.getElementById("buscador").addEventListener("input", filtrar);
-document.getElementById("filtro").addEventListener("change", filtrar);
-
-function filtrar(){
-    const texto = buscador.value.toLowerCase();
-    const categoria = filtro.value;
-
-    let filtrados = productos.filter(p =>
-        p.nombre.toLowerCase().includes(texto)
-    );
-
-    if(categoria !== "todos"){
-        filtrados = filtrados.filter(p => p.categoria === categoria);
-    }
-
-    renderizar(filtrados);
-}
-
-function toggleModo(){
-    document.body.classList.toggle("light");
+document.getElementById("subtotal").textContent = subtotal.toFixed(2);
+document.getElementById("iva").textContent = iva.toFixed(2);
+document.getElementById("totalFinal").textContent = total.toFixed(2);
 }
 
 function finalizarCompra(){
-
-    if(carrito.length === 0){
-        alert("Tu carrito está vacío");
-        return;
-    }
-
-    let listaProductos = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
-
-    let subtotal = carrito.reduce((acc,p)=> acc+p.precio,0);
-    let iva = subtotal * 0.16;
-    let total = subtotal + iva;
-
-    emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
-        productos: listaProductos,
-        total: total.toFixed(2)
-    })
-    .then(function(response){
-        alert("Compra realizada ✅ Revisa tu correo");
-        carrito = [];
-        actualizarCarrito();
-    }, function(error){
-        alert("Error al enviar correo ❌");
-    });
+if(carrito.length === 0){
+alert("Tu carrito está vacío");
+return;
 }
 
-renderizar(productos);
+let listaProductos = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
+let subtotal = carrito.reduce((acc,p)=> acc+p.precio,0);
+let total = subtotal + (subtotal*0.16);
+
+emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
+productos: listaProductos,
+total: total.toFixed(2)
+})
+.then(()=>{
+alert("Compra realizada ✅ Revisa tu correo");
+carrito = [];
+actualizarCarrito();
+});
+}
+
+function abrir3D(){
+document.getElementById("visor3d").style.display="flex";
+}
+
+function cerrar3D(){
+document.getElementById("visor3d").style.display="none";
+}
+
+renderizar();
 
 </script>
 
 </body>
 </html>
+
