@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UrbanWear Store</title>
 
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+(function(){
+emailjs.init("TU_PUBLIC_KEY");
+})();
+</script>
+
 <style>
 body{
     font-family: Arial, sans-serif;
@@ -27,8 +35,6 @@ header{
     background:#1e293b;
 }
 
-h1{margin:0;}
-
 .controls{
     display:flex;
     gap:10px;
@@ -49,10 +55,6 @@ button{
     color:white;
 }
 
-button:hover{
-    background:#2563eb;
-}
-
 .productos{
     display:flex;
     flex-wrap:wrap;
@@ -68,7 +70,6 @@ button:hover{
     border-radius:10px;
     text-align:center;
     transition:0.3s;
-    animation:fade 0.5s ease;
 }
 
 .light .card{
@@ -95,9 +96,26 @@ button:hover{
     background:#e2e8f0;
 }
 
-@keyframes fade{
-    from{opacity:0; transform:translateY(10px);}
-    to{opacity:1; transform:translateY(0);}
+.resumen{
+    background:#020617;
+    padding:20px;
+    margin-top:20px;
+    border-radius:10px;
+    text-align:center;
+}
+
+.light .resumen{
+    background:#e2e8f0;
+}
+
+.pagar{
+    margin-top:15px;
+    width:100%;
+    background:#a3e635;
+    color:black;
+    font-weight:bold;
+    padding:12px;
+    font-size:16px;
 }
 </style>
 </head>
@@ -122,9 +140,16 @@ button:hover{
 <section class="productos" id="productos"></section>
 
 <section class="carrito">
-    <h2>Carrito 🛒</h2>
+    <h2>Tu Carrito 🛒</h2>
     <ul id="listaCarrito"></ul>
-    <h3>Total: $<span id="total">0</span></h3>
+
+    <div class="resumen">
+        <p>Subtotal: $<span id="subtotal">0</span></p>
+        <p>IVA (16%): $<span id="iva">0</span></p>
+        <h3>Total: $<span id="totalFinal">0</span></h3>
+
+        <button class="pagar" onclick="finalizarCompra()">PAGAR COMPRA</button>
+    </div>
 </section>
 
 <script>
@@ -163,16 +188,25 @@ function agregar(index){
 
 function actualizarCarrito(){
     const lista = document.getElementById("listaCarrito");
-    const total = document.getElementById("total");
+    const subtotalSpan = document.getElementById("subtotal");
+    const ivaSpan = document.getElementById("iva");
+    const totalFinalSpan = document.getElementById("totalFinal");
+
     lista.innerHTML = "";
-    let suma=0;
+
+    let subtotal = 0;
 
     carrito.forEach(item=>{
         lista.innerHTML += `<li>${item.nombre} - $${item.precio}</li>`;
-        suma += item.precio;
+        subtotal += item.precio;
     });
 
-    total.textContent = suma;
+    let iva = subtotal * 0.16;
+    let total = subtotal + iva;
+
+    subtotalSpan.textContent = subtotal.toFixed(2);
+    ivaSpan.textContent = iva.toFixed(2);
+    totalFinalSpan.textContent = total.toFixed(2);
 }
 
 document.getElementById("buscador").addEventListener("input", filtrar);
@@ -195,6 +229,32 @@ function filtrar(){
 
 function toggleModo(){
     document.body.classList.toggle("light");
+}
+
+function finalizarCompra(){
+
+    if(carrito.length === 0){
+        alert("Tu carrito está vacío");
+        return;
+    }
+
+    let listaProductos = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
+
+    let subtotal = carrito.reduce((acc,p)=> acc+p.precio,0);
+    let iva = subtotal * 0.16;
+    let total = subtotal + iva;
+
+    emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
+        productos: listaProductos,
+        total: total.toFixed(2)
+    })
+    .then(function(response){
+        alert("Compra realizada ✅ Revisa tu correo");
+        carrito = [];
+        actualizarCarrito();
+    }, function(error){
+        alert("Error al enviar correo ❌");
+    });
 }
 
 renderizar(productos);
