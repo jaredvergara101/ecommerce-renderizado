@@ -2,240 +2,198 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UrbanWear Store</title>
+<title>Tienda StreetWear 3D</title>
 
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-(function(){
-try{
-emailjs.init("TU_PUBLIC_KEY");
-}catch(e){}
-})();
-</script>
-
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
-    margin:0;
-    background:#0f172a;
-    color:white;
+font-family:Arial;
+background:#f5f5f5;
+color:#222;
+text-align:center;
+transition:0.3s;
 }
-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px;
-    background:#1e293b;
-}
-.boton3d{
-    background:#9333ea;
-    padding:10px 20px;
-    border:none;
-    border-radius:8px;
-    color:white;
-    cursor:pointer;
-}
-.productos{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:20px;
-    padding:20px;
-}
+.dark{background:#111;color:white;}
+
+#productos{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+
 .card{
-    width:200px;
-    background:#1e293b;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
+border:1px solid #ccc;
+padding:10px;
+width:200px;
+background:white;
 }
-.precio{
-    color:#22c55e;
-}
-.carrito{
-    margin:20px;
-    padding:20px;
-    background:#020617;
-    border-radius:10px;
-}
-.resumen{
-    background:#020617;
-    padding:20px;
-    margin-top:20px;
-    border-radius:10px;
-    text-align:center;
-}
-.pagar{
-    margin-top:15px;
-    width:100%;
-    background:#a3e635;
-    color:black;
-    font-weight:bold;
-    padding:12px;
-    cursor:pointer;
-}
+.dark .card{background:#222;}
+
+button{padding:8px;margin:5px;cursor:pointer;}
+
+.pagar{background:green;color:white;font-size:18px;}
+
 .modal{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    z-index:999;
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
 }
+
 .modal-content{
-    width:80%;
-    height:80%;
-    background:#111;
-    border-radius:10px;
-    padding:20px;
-    position:relative;
+background:white;
+padding:20px;
+position:relative;
 }
+
 .cerrar{
-    position:absolute;
-    top:10px;
-    right:20px;
-    cursor:pointer;
-    font-size:22px;
-    background:red;
-    padding:5px 10px;
-    border-radius:5px;
-    z-index:999;
+position:absolute;
+top:5px;
+right:10px;
+cursor:pointer;
+font-size:20px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<h1>UrbanWear 🛍️</h1>
-<button class="boton3d" onclick="abrir3D()">👕 Ver prenda 3D</button>
-</header>
+<h1>StreetWear Shop</h1>
 
-<section class="productos" id="productos"></section>
+<input type="text" id="buscador" placeholder="Buscar prenda...">
+<select id="filtro">
+<option value="todos">Todos</option>
+<option value="hoodies">Hoodies</option>
+<option value="playeras">Playeras</option>
+<option value="pantalones">Pantalones</option>
+</select>
 
-<section class="carrito">
-<h2>Tu Carrito 🛒</h2>
-<ul id="listaCarrito"></ul>
+<button onclick="toggleModo()">🌙 / ☀️</button>
 
-<div class="resumen">
+<section id="productos"></section>
+
+<h2>🛒 Carrito</h2>
+<ul id="carrito"></ul>
+
 <p>Subtotal: $<span id="subtotal">0</span></p>
-<p>IVA (16%): $<span id="iva">0</span></p>
-<h3>Total: $<span id="totalFinal">0</span></h3>
-<button class="pagar" onclick="finalizarCompra()">PAGAR COMPRA</button>
-</div>
-</section>
+<p>IVA: $<span id="iva">0</span></p>
+<p>Total: $<span id="total">0</span></p>
 
-<div class="modal" id="visor3d" onclick="cerrar3D()">
-<div class="modal-content" onclick="event.stopPropagation()">
-<span class="cerrar" onclick="cerrar3D()">X</span>
+<button class="pagar" onclick="pagar()">PAGAR COMPRA</button>
 
-<model-viewer
-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+<!-- MODAL 3D -->
+<div id="modal3d" class="modal">
+<div class="modal-content">
+<span class="cerrar" onclick="cerrarModal()">✖</span>
+<model-viewer id="modelo3d"
+src=""
 auto-rotate
 camera-controls
-style="width:100%; height:100%;">
+style="width:100%;height:400px;">
 </model-viewer>
-
 </div>
 </div>
 
 <script>
 
-const productos = [
-{nombre:"Sudadera Oversize", precio:50},
-{nombre:"Jeans Skinny", precio:70},
-{nombre:"Playera Vintage", precio:45},
-{nombre:"Gorra Snapback", precio:25}
+emailjs.init("TU_PUBLIC_KEY");
+
+const productos=[
+{nombre:"Hoodie Black",precio:900,categoria:"hoodies",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"},
+{nombre:"Playera Oversize",precio:450,categoria:"playeras",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"},
+{nombre:"Pantalón Cargo",precio:700,categoria:"pantalones",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"}
 ];
 
-let carrito = [];
+let carrito=[];
 
-function renderizar(){
-const cont = document.getElementById("productos");
-cont.innerHTML = "";
-productos.forEach((p,i)=>{
-cont.innerHTML += `
+function render(){
+let cont=document.getElementById("productos");
+let busqueda=document.getElementById("buscador").value.toLowerCase();
+let filtro=document.getElementById("filtro").value;
+
+cont.innerHTML="";
+
+productos.filter(p=>{
+return (filtro=="todos"||p.categoria==filtro)
+&& p.nombre.toLowerCase().includes(busqueda);
+})
+.forEach(p=>{
+cont.innerHTML+=`
 <div class="card">
 <h3>${p.nombre}</h3>
-<p class="precio">$${p.precio}</p>
-<button onclick="agregar(${i})">Agregar</button>
-</div>`;
+<p>$${p.precio}</p>
+<button onclick='agregar(${JSON.stringify(p)})'>Agregar</button>
+<button onclick='ver3D("${p.modelo}")'>Ver 3D</button>
+</div>
+`;
 });
 }
 
-function agregar(i){
-carrito.push(productos[i]);
-actualizarCarrito();
+render();
+
+document.getElementById("buscador").addEventListener("input",render);
+document.getElementById("filtro").addEventListener("change",render);
+
+function agregar(prod){
+carrito.push(prod);
+mostrarCarrito();
 }
 
-function actualizarCarrito(){
-const lista = document.getElementById("listaCarrito");
-lista.innerHTML = "";
-let subtotal = 0;
+function mostrarCarrito(){
+let lista=document.getElementById("carrito");
+lista.innerHTML="";
+let subtotal=0;
 
-carrito.forEach(item=>{
-lista.innerHTML += `<li>${item.nombre} - $${item.precio}</li>`;
-subtotal += item.precio;
+carrito.forEach(p=>{
+lista.innerHTML+=`<li>${p.nombre} - $${p.precio}</li>`;
+subtotal+=p.precio;
 });
 
-let iva = subtotal * 0.16;
-let total = subtotal + iva;
+let iva=subtotal*0.16;
+let total=subtotal+iva;
 
-document.getElementById("subtotal").textContent = subtotal.toFixed(2);
-document.getElementById("iva").textContent = iva.toFixed(2);
-document.getElementById("totalFinal").textContent = total.toFixed(2);
+document.getElementById("subtotal").innerText=subtotal.toFixed(2);
+document.getElementById("iva").innerText=iva.toFixed(2);
+document.getElementById("total").innerText=total.toFixed(2);
 }
 
-function finalizarCompra(){
-
-if(carrito.length === 0){
+function pagar(){
+if(carrito.length==0){
 alert("Tu carrito está vacío");
 return;
 }
 
-let listaProductos = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
-let subtotal = carrito.reduce((acc,p)=> acc+p.precio,0);
-let total = subtotal + (subtotal*0.16);
+let total=document.getElementById("total").innerText;
 
-try{
 emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
-productos: listaProductos,
-total: total.toFixed(2)
-})
-.then(()=>{
-alert("Compra realizada ✅ Revisa tu correo");
-})
-.catch(()=>{
-alert("Compra realizada (modo demo) ✅");
+mensaje:"Compra realizada por $" + total
+}).then(()=>{
+alert("Compra enviada a tu Gmail 📩");
+carrito=[];
+mostrarCarrito();
 });
-}catch{
-alert("Compra realizada (modo demo) ✅");
 }
 
-carrito = [];
-actualizarCarrito();
+function toggleModo(){
+document.body.classList.toggle("dark");
 }
 
-function abrir3D(){
-document.getElementById("visor3d").style.display="flex";
-}
-function cerrar3D(){
-document.getElementById("visor3d").style.display="none";
+function ver3D(modelo){
+document.getElementById("modelo3d").src=modelo;
+document.getElementById("modal3d").style.display="flex";
 }
 
-renderizar();
+function cerrarModal(){
+document.getElementById("modal3d").style.display="none";
+}
+
+window.onclick=function(e){
+if(e.target==document.getElementById("modal3d")){
+cerrarModal();
+}
+}
 
 </script>
-
 </body>
 </html>
-
-
-
