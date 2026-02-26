@@ -2,41 +2,83 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Tienda StreetWear 3D</title>
+<title>Urban Hoodie Shop</title>
 
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
 body{
-font-family:Arial;
-background:#f5f5f5;
-color:#222;
-text-align:center;
+font-family: 'Segoe UI';
+margin:0;
+background:linear-gradient(135deg,#ece9e6,#ffffff);
 transition:0.3s;
 }
-.dark{background:#111;color:white;}
 
-#productos{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+.dark{
+background:#121212;
+color:white;
+}
+
+header{
+background:#000;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+header input, select{
+padding:5px;
+border-radius:5px;
+border:none;
+}
+
+#productos{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:20px;
+padding:20px;
+}
 
 .card{
-border:1px solid #ccc;
-padding:10px;
-width:200px;
 background:white;
+padding:15px;
+border-radius:12px;
+width:220px;
+box-shadow:0 4px 15px rgba(0,0,0,0.2);
+transition:0.3s;
 }
-.dark .card{background:#222;}
 
-button{padding:8px;margin:5px;cursor:pointer;}
+.dark .card{
+background:#1e1e1e;
+}
 
-.pagar{background:green;color:white;font-size:18px;}
+.card:hover{
+transform:scale(1.05);
+}
+
+button{
+padding:8px;
+border:none;
+border-radius:6px;
+margin:5px;
+cursor:pointer;
+}
+
+.agregar{background:#007bff;color:white;}
+.ver{background:#ff9800;color:white;}
+.pagar{background:green;color:white;font-size:18px;padding:12px;}
 
 .modal{
 display:none;
 position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.6);
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
 justify-content:center;
 align-items:center;
 }
@@ -44,65 +86,68 @@ align-items:center;
 .modal-content{
 background:white;
 padding:20px;
+border-radius:12px;
 position:relative;
+width:400px;
 }
 
 .cerrar{
 position:absolute;
-top:5px;
-right:10px;
+top:10px;
+right:15px;
+font-size:22px;
 cursor:pointer;
-font-size:20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>StreetWear Shop</h1>
-
+<header>
+<h2>Urban Hoodie</h2>
 <input type="text" id="buscador" placeholder="Buscar prenda...">
 <select id="filtro">
 <option value="todos">Todos</option>
 <option value="hoodies">Hoodies</option>
 <option value="playeras">Playeras</option>
-<option value="pantalones">Pantalones</option>
+<option value="pants">Pantalones</option>
 </select>
-
-<button onclick="toggleModo()">🌙 / ☀️</button>
+<button onclick="toggleModo()">🌙</button>
+</header>
 
 <section id="productos"></section>
 
-<h2>🛒 Carrito</h2>
+<h3 style="text-align:center;">🛒 Carrito</h3>
 <ul id="carrito"></ul>
 
+<div style="text-align:center;">
 <p>Subtotal: $<span id="subtotal">0</span></p>
 <p>IVA: $<span id="iva">0</span></p>
 <p>Total: $<span id="total">0</span></p>
-
 <button class="pagar" onclick="pagar()">PAGAR COMPRA</button>
+</div>
 
 <!-- MODAL 3D -->
 <div id="modal3d" class="modal">
 <div class="modal-content">
 <span class="cerrar" onclick="cerrarModal()">✖</span>
-<model-viewer id="modelo3d"
-src=""
+
+<model-viewer
+src="https://modelviewer.dev/shared-assets/models/ShopifyModels/Hoodie.glb"
 auto-rotate
 camera-controls
 style="width:100%;height:400px;">
 </model-viewer>
+
 </div>
 </div>
 
 <script>
 
-emailjs.init("TU_PUBLIC_KEY");
-
 const productos=[
-{nombre:"Hoodie Black",precio:900,categoria:"hoodies",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"},
-{nombre:"Playera Oversize",precio:450,categoria:"playeras",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"},
-{nombre:"Pantalón Cargo",precio:700,categoria:"pantalones",modelo:"https://modelviewer.dev/shared-assets/models/Astronaut.glb"}
+{nombre:"Hoodie Black",precio:900,categoria:"hoodies"},
+{nombre:"Playera Oversize",precio:450,categoria:"playeras"},
+{nombre:"Cargo Pants",precio:700,categoria:"pants"}
 ];
 
 let carrito=[];
@@ -123,8 +168,8 @@ cont.innerHTML+=`
 <div class="card">
 <h3>${p.nombre}</h3>
 <p>$${p.precio}</p>
-<button onclick='agregar(${JSON.stringify(p)})'>Agregar</button>
-<button onclick='ver3D("${p.modelo}")'>Ver 3D</button>
+<button class="agregar" onclick='agregar(${JSON.stringify(p)})'>Agregar</button>
+${p.categoria=="hoodies" ? `<button class="ver" onclick="ver3D()">Ver en 3D</button>` : ``}
 </div>
 `;
 });
@@ -163,24 +208,16 @@ if(carrito.length==0){
 alert("Tu carrito está vacío");
 return;
 }
-
-let total=document.getElementById("total").innerText;
-
-emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID",{
-mensaje:"Compra realizada por $" + total
-}).then(()=>{
-alert("Compra enviada a tu Gmail 📩");
+alert("Compra realizada ✅");
 carrito=[];
 mostrarCarrito();
-});
 }
 
 function toggleModo(){
 document.body.classList.toggle("dark");
 }
 
-function ver3D(modelo){
-document.getElementById("modelo3d").src=modelo;
+function ver3D(){
 document.getElementById("modal3d").style.display="flex";
 }
 
@@ -193,7 +230,7 @@ if(e.target==document.getElementById("modal3d")){
 cerrarModal();
 }
 }
-
 </script>
+
 </body>
 </html>
