@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanWear Store</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#0f172a;
+    color:white;
+    transition:0.4s;
+}
+
+.light{
+    background:#f1f5f9;
+    color:#0f172a;
+}
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px;
+    background:#1e293b;
+}
+
+h1{margin:0;}
+
+.controls{
+    display:flex;
+    gap:10px;
+}
+
+input, select{
+    padding:8px;
+    border-radius:5px;
+    border:none;
+}
+
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#3b82f6;
+    color:white;
+}
+
+button:hover{
+    background:#2563eb;
+}
+
+.productos{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+    padding:20px;
+}
+
+.card{
+    width:200px;
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    transition:0.3s;
+    animation:fade 0.5s ease;
+}
+
+.light .card{
+    background:white;
+}
+
+.card:hover{
+    transform:scale(1.05);
+}
+
+.precio{
+    color:#22c55e;
+    font-weight:bold;
+}
+
+.carrito{
+    margin:20px;
+    padding:20px;
+    background:#020617;
+    border-radius:10px;
+}
+
+.light .carrito{
+    background:#e2e8f0;
+}
+
+@keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>UrbanWear 🛍️</h1>
+    <div class="controls">
+        <input type="text" id="buscador" placeholder="Buscar ropa...">
+        <select id="filtro">
+            <option value="todos">Todas</option>
+            <option value="sudaderas">Sudaderas</option>
+            <option value="pantalones">Pantalones</option>
+            <option value="playeras">Playeras</option>
+            <option value="accesorios">Accesorios</option>
+        </select>
+        <button onclick="toggleModo()">Modo 🌗</button>
+    </div>
+</header>
+
+<section class="productos" id="productos"></section>
+
+<section class="carrito">
+    <h2>Carrito 🛒</h2>
+    <ul id="listaCarrito"></ul>
+    <h3>Total: $<span id="total">0</span></h3>
+</section>
+
+<script>
+
+const productos = [
+{nombre:"Sudadera Oversize", precio:50, categoria:"sudaderas"},
+{nombre:"Sudadera Street", precio:65, categoria:"sudaderas"},
+{nombre:"Jeans Skinny", precio:70, categoria:"pantalones"},
+{nombre:"Cargo Pants", precio:80, categoria:"pantalones"},
+{nombre:"Playera Básica", precio:30, categoria:"playeras"},
+{nombre:"Playera Vintage", precio:45, categoria:"playeras"},
+{nombre:"Gorra Snapback", precio:25, categoria:"accesorios"},
+{nombre:"Mochila Urbana", precio:55, categoria:"accesorios"}
+];
+
+let carrito = [];
+
+function renderizar(lista){
+    const cont = document.getElementById("productos");
+    cont.innerHTML = "";
+
+    lista.forEach((prod,index)=>{
+        cont.innerHTML += `
+        <div class="card">
+            <h3>${prod.nombre}</h3>
+            <p class="precio">$${prod.precio}</p>
+            <button onclick="agregar(${index})">Agregar</button>
+        </div>`;
+    });
+}
+
+function agregar(index){
+    carrito.push(productos[index]);
+    actualizarCarrito();
+}
+
+function actualizarCarrito(){
+    const lista = document.getElementById("listaCarrito");
+    const total = document.getElementById("total");
+    lista.innerHTML = "";
+    let suma=0;
+
+    carrito.forEach(item=>{
+        lista.innerHTML += `<li>${item.nombre} - $${item.precio}</li>`;
+        suma += item.precio;
+    });
+
+    total.textContent = suma;
+}
+
+document.getElementById("buscador").addEventListener("input", filtrar);
+document.getElementById("filtro").addEventListener("change", filtrar);
+
+function filtrar(){
+    const texto = buscador.value.toLowerCase();
+    const categoria = filtro.value;
+
+    let filtrados = productos.filter(p =>
+        p.nombre.toLowerCase().includes(texto)
+    );
+
+    if(categoria !== "todos"){
+        filtrados = filtrados.filter(p => p.categoria === categoria);
+    }
+
+    renderizar(filtrados);
+}
+
+function toggleModo(){
+    document.body.classList.toggle("light");
+}
+
+renderizar(productos);
+
+</script>
+
+</body>
+</html>
