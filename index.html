@@ -7,15 +7,16 @@
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
+
 body{
-font-family: 'Segoe UI';
+font-family: 'Segoe UI', sans-serif;
 margin:0;
-background:linear-gradient(135deg,#ece9e6,#ffffff);
+background:linear-gradient(135deg,#e0e0e0,#ffffff);
 transition:0.3s;
 }
 
 .dark{
-background:#121212;
+background:#0f0f0f;
 color:white;
 }
 
@@ -24,52 +25,97 @@ background:#000;
 color:white;
 padding:15px;
 display:flex;
-justify-content:space-between;
 align-items:center;
+justify-content:space-between;
+gap:10px;
 }
 
-header input, select{
-padding:5px;
-border-radius:5px;
+header input,select{
+padding:7px;
+border-radius:6px;
 border:none;
 }
 
+header button{
+padding:7px 12px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
 #productos{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:20px;
-padding:20px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+padding:30px;
 }
 
 .card{
 background:white;
-padding:15px;
-border-radius:12px;
-width:220px;
-box-shadow:0 4px 15px rgba(0,0,0,0.2);
+border-radius:14px;
+overflow:hidden;
+box-shadow:0 6px 20px rgba(0,0,0,0.2);
 transition:0.3s;
+text-align:center;
 }
 
 .dark .card{
-background:#1e1e1e;
+background:#1c1c1c;
 }
 
 .card:hover{
-transform:scale(1.05);
+transform:translateY(-5px);
+}
+
+.card img{
+width:100%;
+height:220px;
+object-fit:cover;
+}
+
+.card h3{
+margin:10px 0 5px 0;
+}
+
+.card p{
+margin:0;
+font-weight:bold;
+}
+
+.botones{
+margin:10px;
 }
 
 button{
-padding:8px;
+padding:8px 12px;
 border:none;
 border-radius:6px;
-margin:5px;
 cursor:pointer;
+margin:4px;
 }
 
-.agregar{background:#007bff;color:white;}
-.ver{background:#ff9800;color:white;}
-.pagar{background:green;color:white;font-size:18px;padding:12px;}
+.agregar{
+background:#1e88e5;
+color:white;
+}
+
+.ver{
+background:#ff9800;
+color:white;
+}
+
+.pagar{
+background:#00c853;
+color:white;
+font-size:18px;
+padding:12px 25px;
+margin-top:10px;
+}
+
+#carrito{
+max-width:500px;
+margin:auto;
+}
 
 .modal{
 display:none;
@@ -78,7 +124,7 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,0.7);
+background:rgba(0,0,0,0.8);
 justify-content:center;
 align-items:center;
 }
@@ -87,52 +133,73 @@ align-items:center;
 background:white;
 padding:20px;
 border-radius:12px;
+width:420px;
 position:relative;
-width:400px;
 }
 
 .cerrar{
 position:absolute;
 top:10px;
 right:15px;
-font-size:22px;
+font-size:25px;
 cursor:pointer;
 }
+
+.dark .modal-content{
+background:#222;
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
+
 <h2>Urban Hoodie</h2>
+
 <input type="text" id="buscador" placeholder="Buscar prenda...">
+
 <select id="filtro">
 <option value="todos">Todos</option>
 <option value="hoodies">Hoodies</option>
 <option value="playeras">Playeras</option>
 <option value="pants">Pantalones</option>
 </select>
+
 <button onclick="toggleModo()">🌙</button>
+
 </header>
+
 
 <section id="productos"></section>
 
+
 <h3 style="text-align:center;">🛒 Carrito</h3>
+
 <ul id="carrito"></ul>
 
 <div style="text-align:center;">
+
 <p>Subtotal: $<span id="subtotal">0</span></p>
 <p>IVA: $<span id="iva">0</span></p>
 <p>Total: $<span id="total">0</span></p>
+
 <button class="pagar" onclick="pagar()">PAGAR COMPRA</button>
+
 </div>
 
+
 <!-- MODAL 3D -->
+
 <div id="modal3d" class="modal">
+
 <div class="modal-content">
+
 <span class="cerrar" onclick="cerrarModal()">✖</span>
 
 <model-viewer
+id="modelo3d"
 src="https://modelviewer.dev/shared-assets/models/ShopifyModels/Hoodie.glb"
 auto-rotate
 camera-controls
@@ -140,19 +207,63 @@ style="width:100%;height:400px;">
 </model-viewer>
 
 </div>
+
 </div>
+
 
 <script>
 
 const productos=[
-{nombre:"Hoodie Black",precio:900,categoria:"hoodies"},
-{nombre:"Playera Oversize",precio:450,categoria:"playeras"},
-{nombre:"Cargo Pants",precio:700,categoria:"pants"}
+
+{
+nombre:"Hoodie Oversize",
+precio:900,
+categoria:"hoodies",
+img:"hoodie.jpg"
+},
+
+{
+nombre:"Playera Rolling Stones",
+precio:450,
+categoria:"playeras",
+img:"playera.jpg"
+},
+
+{
+nombre:"Cargo Pants Grey",
+precio:700,
+categoria:"pants",
+img:"pants.jpg"
+},
+
+{
+nombre:"Street Hoodie",
+precio:950,
+categoria:"hoodies",
+img:"hoodie.jpg"
+},
+
+{
+nombre:"Urban T-Shirt",
+precio:420,
+categoria:"playeras",
+img:"playera.jpg"
+},
+
+{
+nombre:"Baggy Pants",
+precio:750,
+categoria:"pants",
+img:"pants.jpg"
+}
+
 ];
 
 let carrito=[];
 
+
 function render(){
+
 let cont=document.getElementById("productos");
 let busqueda=document.getElementById("buscador").value.toLowerCase();
 let filtro=document.getElementById("filtro").value;
@@ -160,77 +271,139 @@ let filtro=document.getElementById("filtro").value;
 cont.innerHTML="";
 
 productos.filter(p=>{
+
 return (filtro=="todos"||p.categoria==filtro)
 && p.nombre.toLowerCase().includes(busqueda);
+
 })
+
 .forEach(p=>{
+
 cont.innerHTML+=`
+
 <div class="card">
+
+<img src="${p.img}">
+
 <h3>${p.nombre}</h3>
+
 <p>$${p.precio}</p>
-<button class="agregar" onclick='agregar(${JSON.stringify(p)})'>Agregar</button>
-${p.categoria=="hoodies" ? `<button class="ver" onclick="ver3D()">Ver en 3D</button>` : ``}
+
+<div class="botones">
+
+<button class="agregar" onclick='agregar(${JSON.stringify(p)})'>
+Agregar
+</button>
+
+<button class="ver" onclick="ver3D()">
+Ver en 3D
+</button>
+
 </div>
+
+</div>
+
 `;
+
 });
+
 }
 
 render();
 
+
 document.getElementById("buscador").addEventListener("input",render);
 document.getElementById("filtro").addEventListener("change",render);
 
+
 function agregar(prod){
+
 carrito.push(prod);
+
 mostrarCarrito();
+
 }
 
+
 function mostrarCarrito(){
+
 let lista=document.getElementById("carrito");
+
 lista.innerHTML="";
+
 let subtotal=0;
 
 carrito.forEach(p=>{
+
 lista.innerHTML+=`<li>${p.nombre} - $${p.precio}</li>`;
+
 subtotal+=p.precio;
+
 });
 
 let iva=subtotal*0.16;
+
 let total=subtotal+iva;
 
 document.getElementById("subtotal").innerText=subtotal.toFixed(2);
 document.getElementById("iva").innerText=iva.toFixed(2);
 document.getElementById("total").innerText=total.toFixed(2);
+
 }
+
 
 function pagar(){
+
 if(carrito.length==0){
+
 alert("Tu carrito está vacío");
+
 return;
+
 }
+
 alert("Compra realizada ✅");
+
 carrito=[];
+
 mostrarCarrito();
+
 }
+
 
 function toggleModo(){
+
 document.body.classList.toggle("dark");
+
 }
+
 
 function ver3D(){
+
 document.getElementById("modal3d").style.display="flex";
+
 }
+
 
 function cerrarModal(){
+
 document.getElementById("modal3d").style.display="none";
+
 }
 
+
 window.onclick=function(e){
+
 if(e.target==document.getElementById("modal3d")){
+
 cerrarModal();
+
 }
+
 }
+
 </script>
 
 </body>
 </html>
+
